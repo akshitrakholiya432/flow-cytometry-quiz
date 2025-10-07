@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biology Quiz Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .answer-btn {
+            transition: all 0.2s ease;
+        }
+        .answer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .answer-btn.selected {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-color: #3b82f6;
+        }
+        .progress-bar-inner {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="warning-overlay" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-sm">
+            <h2 class="text-2xl font-bold text-red-600 mb-4">Warning!</h2>
+            <p id="warning-text" class="text-slate-700">Leaving the quiz tab is not allowed. Please return to the quiz immediately.</p>
+        </div>
+    </div>
+
+    <div class="quiz-container w-full bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+
+        <div id="start-screen">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-4 text-slate-900">Biology Quiz Challenge</h1>
+            <p class="text-center text-slate-600 mb-6">Test your knowledge in Biology.</p>
+            <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-8">
+                <h3 class="font-bold mb-2">Quiz Rules:</h3>
+                <ul class="list-disc list-inside text-sm">
+                    <li>You will have <span class="font-bold">30 minutes</span> to complete all 30 questions.</li>
+                    <li>The quiz is designed to be taken in a single session without external help.</li>
+                    <li><span class="font-bold text-red-600">Switching tabs or minimizing the window is not allowed.</span> Doing so multiple times will end the quiz.</li>
+                    <li>Copy and paste functions are disabled.</li>
+                </ul>
+            </div>
+            <div class="space-y-4 mb-6">
+                 <div>
+                    <label for="name-input" class="block text-sm font-medium text-slate-700 mb-1">Enter your name:</label>
+                    <input type="text" id="name-input" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Your Name">
+                </div>
+                <div>
+                    <label for="email-input" class="block text-sm font-medium text-slate-700 mb-1">Enter your email:</label>
+                    <input type="email" id="email-input" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="example@email.com">
+                </div>
+                <div>
+                    <label for="whatsapp-input" class="block text-sm font-medium text-slate-700 mb-1">Enter your WhatsApp Number:</label>
+                    <input type="tel" id="whatsapp-input" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="+1234567890">
+                </div>
+                <div>
+                    <label for="qualifications-input" class="block text-sm font-medium text-slate-700 mb-1">Enter your Qualifications:</label>
+                    <input type="text" id="qualifications-input" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., B.Sc. in Biology">
+                </div>
+            </div>
+             <div class="flex items-center mt-6 mb-6">
+                <input id="honor-code" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <label for="honor-code" class="ml-3 block text-sm text-slate-900">I agree to take this quiz without any external help.</label>
+            </div>
+            <button id="start-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg disabled:bg-slate-400 disabled:cursor-not-allowed" disabled>
+                Start the Quiz!
+            </button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <div id="timer" class="text-xl font-bold bg-slate-200 text-slate-800 px-4 py-2 rounded-lg">30:00</div>
+                <div class="text-lg font-semibold">Question <span id="question-number">1</span> of 30</div>
+            </div>
+            
+            <h2 id="question-text" class="text-2xl font-semibold mb-6 min-h-[100px]">Question text goes here...</h2>
+            
+            <div id="answer-buttons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
+            
+            <div class="mt-8 flex flex-wrap justify-between items-center gap-4">
+                <button id="prev-btn" class="bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-400 transition-colors">Previous</button>
+                <div id="progress-dots" class="flex gap-1.5"></div>
+                <button id="next-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">Next</button>
+                <button id="submit-btn" class="hidden bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Submit</button>
+            </div>
+        </div>
+        
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold mb-4 text-slate-900">Quiz Complete!</h2>
+            <p class="text-lg text-slate-600 mb-6">Your results have been submitted.</p>
+            <div class="bg-slate-100 p-8 rounded-xl inline-block">
+                <div id="score-text" class="text-5xl font-bold text-blue-600"></div>
+                <p class="text-slate-700 mt-2">Correct Answers</p>
+            </div>
+            <div id="time-taken" class="mt-6 text-slate-500"></div>
+            <button id="restart-btn" class="mt-8 w-full sm:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors text-lg">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+    // ----------------------
+    // 1. CONFIGURATION
+    // ----------------------
+    // NOTE: Ensure your Google Apps Script has been REDEPLOYED with the doPost(e) logic
+    // that handles WarningCount and email blocking.
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuaQBcJubGBlO0Ijl5hodQGfgSrpvTS578PiZ5TGgVRsOXQH_Yur6kC4KuW3CQumumRA/exec";
+    const TIME_LIMIT = 30 * 60; // 30 minutes in seconds
+    const MAX_WARNINGS = 3; // Maximum allowed tab switches before auto-submission
+    
+    // ----------------------
+    // 2. QUIZ DATA (30 Questions)
+    // ----------------------
+    const questions = [
+      {
+        question: "What is the powerhouse of the cell?",
+        answers: [
+          { text: "Nucleus", correct: false },
+          { text: "Mitochondria", correct: true },
+          { text: "Ribosome", correct: false },
+          { text: "Endoplasmic Reticulum", correct: false }
+        ]
+      },
+      {
+        question: "Which molecule stores genetic information in most living organisms?",
+        answers: [
+          { text: "RNA", correct: false },
+          { text: "Protein", correct: false },
+          { text: "DNA", correct: true },
+          { text: "Lipid", correct: false }
+        ]
+      },
+      {
+        question: "What is the process by which plants convert light energy into chemical energy?",
+        answers: [
+          { text: "Respiration", correct: false },
+          { text: "Transpiration", correct: false },
+          { text: "Photosynthesis", correct: true },
+          { text: "Fermentation", correct: false }
+        ]
+      },
+      {
+        question: "The basic structural and functional unit of life is the:",
+        answers: [
+          { text: "Tissue", correct: false },
+          { text: "Organ", correct: false },
+          { text: "Cell", correct: true },
+          { text: "Molecule", correct: false }
+        ]
+      },
+      {
+        question: "Which blood component is primarily responsible for transporting oxygen?",
+        answers: [
+          { text: "White blood cells", correct: false },
+          { text: "Platelets", correct: false },
+          { text: "Plasma", correct: false },
+          { text: "Red blood cells", correct: true }
+        ]
+      },
+      {
+        question: "A change in the DNA sequence that can result in a variant trait is called a:",
+        answers: [
+          { text: "Replication", correct: false },
+          { text: "Mutation", correct: true },
+          { text: "Translation", correct: false },
+          { text: "Transcription", correct: false }
+        ]
+      },
+      {
+        question: "What separates the interior of all cells from the outside environment?",
+        answers: [
+          { text: "Cell wall", correct: false },
+          { text: "Cytoplasm", correct: false },
+          { text: "Cell membrane", correct: true },
+          { text: "Nucleus", correct: false }
+        ]
+      },
+      {
+        question: "Which term describes an organism that makes its own food?",
+        answers: [
+          { text: "Heterotroph", correct: false },
+          { text: "Parasite", correct: false },
+          { text: "Autotroph", correct: true },
+          { text: "Saprophyte", correct: false }
+        ]
+      },
+      {
+        question: "What is the primary function of the large intestine?",
+        answers: [
+          { text: "Chemical digestion of fats", correct: false },
+          { text: "Absorption of nutrients", correct: false },
+          { text: "Absorption of water", correct: true },
+          { text: "Production of bile", correct: false }
+        ]
+      },
+      {
+        question: "Meiosis is a type of cell division that results in:",
+        answers: [
+          { text: "Two identical diploid cells", correct: false },
+          { text: "Four genetically identical diploid cells", correct: false },
+          { text: "Two genetically identical haploid cells", correct: false },
+          { text: "Four genetically distinct haploid cells", correct: true }
+        ]
+      },
+      {
+        question: "Which enzyme is responsible for breaking down starch in the mouth?",
+        answers: [
+          { text: "Lipase", correct: false },
+          { text: "Pepsin", correct: false },
+          { text: "Amylase", correct: true },
+          { text: "Trypsin", correct: false }
+        ]
+      },
+      {
+        question: "The protective layer of a plant cell that lies outside the cell membrane is the:",
+        answers: [
+          { text: "Chloroplast", correct: false },
+          { text: "Cell wall", correct: true },
+          { text: "Cytoskeleton", correct: false },
+          { text: "Mitochondrion", correct: false }
+        ]
+      },
+      {
+        question: "Which hormone regulates blood sugar levels?",
+        answers: [
+          { text: "Adrenaline", correct: false },
+          { text: "Thyroxine", correct: false },
+          { text: "Insulin", correct: true },
+          { text: "Estrogen", correct: false }
+        ]
+      },
+      {
+        question: "The process of a caterpillar turning into a butterfly is called:",
+        answers: [
+          { text: "Germination", correct: false },
+          { text: "Adaptation", correct: false },
+          { text: "Metamorphosis", correct: true },
+          { text: "Hibernation", correct: false }
+        ]
+      },
+      {
+        question: "Which part of the brain controls balance and coordination?",
+        answers: [
+          { text: "Cerebrum", correct: false },
+          { text: "Medulla", correct: false },
+          { text: "Cerebellum", correct: true },
+          { text: "Hypothalamus", correct: false }
+        ]
+      },
+      {
+        question: "Organisms that feed on dead organic matter are called:",
+        answers: [
+          { text: "Producers", correct: false },
+          { text: "Consumers", correct: false },
+          { text: "Decomposers", correct: true },
+          { text: "Herbivores", correct: false }
+        ]
+      },
+      {
+        question: "What is the primary purpose of the stomata on a plant leaf?",
+        answers: [
+          { text: "Water absorption", correct: false },
+          { text: "Gas exchange (CO2 and O2)", correct: true },
+          { text: "Pest defense", correct: false },
+          { text: "Energy storage", correct: false }
+        ]
+      },
+      {
+        question: "Which of the following is a prokaryotic cell?",
+        answers: [
+          { text: "Fungal cell", correct: false },
+          { text: "Plant cell", correct: false },
+          { text: "Bacterial cell", correct: true },
+          { text: "Animal cell", correct: false }
+        ]
+      },
+      {
+        question: "The site of protein synthesis in a cell is the:",
+        answers: [
+          { text: "Golgi apparatus", correct: false },
+          { text: "Lysosome", correct: false },
+          { text: "Ribosome", correct: true },
+          { text: "Vacuole", correct: false }
+        ]
+      },
+      {
+        question: "The interaction where one organism benefits and the other is neither helped nor harmed is called:",
+        answers: [
+          { text: "Mutualism", correct: false },
+          { text: "Parasitism", correct: false },
+          { text: "Commensalism", correct: true },
+          { text: "Competition", correct: false }
+        ]
+      },
+      {
+        question: "In the human circulatory system, arteries carry blood:",
+        answers: [
+          { text: "Towards the heart", correct: false },
+          { text: "Away from the heart", correct: true },
+          { text: "Only deoxygenated blood", correct: false },
+          { text: "To the capillaries only", correct: false }
+        ]
+      },
+      {
+        question: "Gregor Mendel is known as the father of modern:",
+        answers: [
+          { text: "Evolution", correct: false },
+          { text: "Genetics", correct: true },
+          { text: "Ecology", correct: false },
+          { text: "Cell Biology", correct: false }
+        ]
+      },
+      {
+        question: "What is the primary product of aerobic cellular respiration?",
+        answers: [
+          { text: "Lactic Acid", correct: false },
+          { text: "Oxygen", correct: false },
+          { text: "Glucose", correct: false },
+          { text: "ATP (Adenosine Triphosphate)", correct: true }
+        ]
+      },
+      {
+        question: "The male reproductive organ of a flower is the:",
+        answers: [
+          { text: "Pistil", correct: false },
+          { text: "Ovary", correct: false },
+          { text: "Stamen", correct: true },
+          { text: "Petal", correct: false }
+        ]
+      },
+      {
+        question: "Which type of immunity is gained after recovery from a disease?",
+        answers: [
+          { text: "Passive immunity", correct: false },
+          { text: "Artificial immunity", correct: false },
+          { text: "Natural active immunity", correct: true },
+          { text: "Acquired passive immunity", correct: false }
+        ]
+      },
+      {
+        question: "The chemical element central to all organic molecules is:",
+        answers: [
+          { text: "Oxygen", correct: false },
+          { text: "Nitrogen", correct: false },
+          { text: "Carbon", correct: true },
+          { text: "Hydrogen", correct: false }
+        ]
+      },
+      {
+        question: "What is the main function of myelin sheath around a nerve fiber?",
+        answers: [
+          { text: "To provide nutrients", correct: false },
+          { text: "To protect and speed up impulses", correct: true },
+          { text: "To regulate blood flow", correct: false },
+          { text: "To produce hormones", correct: false }
+        ]
+      },
+      {
+        question: "An ecosystem consists of:",
+        answers: [
+          { text: "Only living organisms", correct: false },
+          { text: "Only physical environment", correct: false },
+          { text: "All living and non-living components", correct: true },
+          { text: "Only a single species and its environment", correct: false }
+        ]
+      },
+      {
+        question: "In DNA replication, which enzyme is primarily responsible for adding new nucleotides?",
+        answers: [
+          { text: "Helicase", correct: false },
+          { text: "Ligase", correct: false },
+          { text: "DNA Polymerase", correct: true },
+          { text: "Primase", correct: false }
+        ]
+      },
+      {
+        question: "Which organelle is a flattened sac that packages proteins and lipids for transport?",
+        answers: [
+          { text: "Smooth ER", correct: false },
+          { text: "Peroxisome", correct: false },
+          { text: "Lysosome", correct: false },
+          { text: "Golgi Apparatus", correct: true }
+        ]
+      }
+    ];
+    
+    // ----------------------
+    // 3. GLOBAL VARIABLES & DOM ELEMENTS
+    // ----------------------
+    let timeLeft = TIME_LIMIT;
+    let timerInterval;
+    let quizStartTime;
+    let currentQuestionIndex = 0;
+    // userAnswers stores the index of the selected option (0 to 3) or null if unanswered
+    const userAnswers = new Array(questions.length).fill(null); 
+    // submittedEmails stores emails that have successfully submitted the quiz this session (Client-side check)
+    const submittedEmails = new Set(); 
+    
+    let isWarningDisplayed = false;
+    let warningCount = 0; // NEW: Tracks the number of tab-switching violations
+
+    // Get all screen/control elements
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const questionText = document.getElementById('question-text');
+    const answerButtonsContainer = document.getElementById('answer-buttons');
+    const questionNumberSpan = document.getElementById('question-number');
+    const timerDisplay = document.getElementById('timer');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const scoreText = document.getElementById('score-text');
+    const timeTakenText = document.getElementById('time-taken');
+    const progressDotsContainer = document.getElementById('progress-dots');
+    const warningOverlay = document.getElementById('warning-overlay');
+    const warningText = document.getElementById('warning-text'); // Get the warning text element
+
+    // Input elements for validation
+    const startBtn = document.getElementById('start-btn');
+    const nameInput = document.getElementById('name-input');
+    const emailInput = document.getElementById('email-input');
+    const whatsappInput = document.getElementById('whatsapp-input');
+    const qualificationsInput = document.getElementById('qualifications-input');
+    const honorCodeCheckbox = document.getElementById('honor-code');
+
+    // ----------------------
+    // 4. UTILITY FUNCTIONS (Validation & Timer)
+    // ----------------------
+
+    function validateInputs() {
+      const nameValid = nameInput.value.trim() !== '';
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+      // Allows optional '+', digits, spaces, or hyphens, min 7, max 15
+      const whatsappValid = /^\+?[0-9\s-]{7,15}$/.test(whatsappInput.value.trim());
+      const qualificationsValid = qualificationsInput.value.trim() !== '';
+      const honorCodeValid = honorCodeCheckbox.checked;
+      startBtn.disabled = !(nameValid && emailValid && whatsappValid && qualificationsValid && honorCodeValid);
+    }
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = seconds % 60;
+      return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      quizStartTime = Date.now();
+      timerDisplay.textContent = formatTime(timeLeft);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = formatTime(timeLeft);
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          submitQuiz(true, warningCount); // Auto-submit on timeout, pass warningCount
+        }
+      }, 1000);
+    }
+
+    // ----------------------
+    // 5. QUIZ NAVIGATION & DISPLAY
+    // ----------------------
+    function loadQuestion() {
+      const q = questions[currentQuestionIndex];
+      
+      // Update question text and number
+      questionNumberSpan.textContent = currentQuestionIndex + 1;
+      questionText.textContent = q.question;
+      
+      // Clear previous buttons
+      answerButtonsContainer.innerHTML = '';
+      
+      // Create answer buttons
+      q.answers.forEach((answer, index) => {
+        const button = document.createElement('button');
+        button.innerHTML = answer.text;
+        button.classList.add(
+          'answer-btn', 
+          'w-full', 'text-left', 'px-4', 'py-3', 'border', 'border-slate-300', 
+          'rounded-lg', 'font-medium', 'text-slate-700', 'bg-white', 'hover:bg-slate-50'
+        );
+        button.dataset.index = index;
+        button.addEventListener('click', () => selectAnswer(index));
+        answerButtonsContainer.appendChild(button);
+      });
+      
+      // Highlight selected answer
+      const selectedIndex = userAnswers[currentQuestionIndex];
+      if (selectedIndex !== null) {
+        answerButtonsContainer.querySelector(`[data-index="${selectedIndex}"]`).classList.add('selected');
+      }
+
+      updateNavigationButtons();
+      updateProgressDots();
+    }
+
+    function selectAnswer(selectedIndex) {
+      // Deselect all buttons first
+      answerButtonsContainer.querySelectorAll('.answer-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+
+      // Select the new button
+      const selectedButton = answerButtonsContainer.querySelector(`[data-index="${selectedIndex}"]`);
+      selectedButton.classList.add('selected');
+
+      // Save the answer
+      userAnswers[currentQuestionIndex] = selectedIndex;
+
+      // Automatically move to the next question if available
+      if (currentQuestionIndex < questions.length - 1) {
+        setTimeout(() => {
+            currentQuestionIndex++;
+            loadQuestion();
+        }, 150); // Small delay for visual feedback
+      } else {
+        updateNavigationButtons(); // Update to show submit button
+      }
+    }
+
+    function updateNavigationButtons() {
+      // Previous button
+      prevBtn.disabled = currentQuestionIndex === 0;
+      prevBtn.classList.toggle('disabled:opacity-50', currentQuestionIndex === 0);
+
+      // Next/Submit button
+      if (currentQuestionIndex === questions.length - 1) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+    }
+
+    function updateProgressDots() {
+      progressDotsContainer.innerHTML = ''; // Clear existing dots
+      questions.forEach((_, index) => {
+        const dot = document.createElement('span');
+        dot.classList.add('h-2', 'w-2', 'rounded-full', 'cursor-pointer');
+
+        if (index === currentQuestionIndex) {
+          dot.classList.add('bg-blue-600', 'ring-2', 'ring-blue-300'); // Current
+        } else if (userAnswers[index] !== null) {
+          dot.classList.add('bg-green-500'); // Answered
+        } else {
+          dot.classList.add('bg-slate-300'); // Unanswered
+        }
+
+        dot.addEventListener('click', () => {
+            currentQuestionIndex = index;
+            loadQuestion();
+        });
+        progressDotsContainer.appendChild(dot);
+      });
+    }
+    
+    // ----------------------
+    // 6. QUIZ FLOW CONTROL & SUBMISSION (using Apps Script)
+    // ----------------------
+    
+    function startQuiz() {
+        const email = emailInput.value.trim();
+        if (submittedEmails.has(email)) {
+            alert("⚠️ This email has already been used for the quiz in this session. Each email can only participate once.");
+            return;
+        }
+
+        startScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+        loadQuestion();
+        startTimer();
+        setupSecurityChecks(); // Start security monitoring
+    }
+
+    // UPDATED: submitQuiz now accepts optional finalWarningCount
+    async function submitQuiz(isTimeout = false, finalWarningCount = warningCount) {
+      clearInterval(timerInterval);
+      window.removeEventListener('blur', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('copy', disableClipboard);
+      document.removeEventListener('cut', disableClipboard);
+      
+      quizScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+      
+      const email = emailInput.value.trim();
+      
+      // 1. Calculate Score
+      let score = 0;
+      const totalQuestions = questions.length;
+      userAnswers.forEach((answerIndex, qIndex) => {
+        if (answerIndex !== null && questions[qIndex].answers[answerIndex].correct) {
+          score++;
+        }
+      });
+      
+      const timeTakenMs = Date.now() - quizStartTime;
+      const timeTakenSec = Math.floor(timeTakenMs / 1000);
+      
+      scoreText.textContent = `${score} / ${totalQuestions}`;
+      timeTakenText.textContent = `Time taken: ${formatTime(timeTakenSec)}`;
+
+      // 2. Prepare Data for Submission
+      const submissionData = {
+        Timestamp: new Date().toLocaleString(),
+        Name: nameInput.value.trim(),
+        Email: email,
+        WhatsApp: whatsappInput.value.trim(),
+        Qualifications: qualificationsInput.value.trim(),
+        Score: score,
+        TotalQuestions: totalQuestions,
+        TimeTakenSeconds: timeTakenSec, 
+        IsTimeout: isTimeout ? 'Yes' : 'No',
+        WarningCount: finalWarningCount, // PASSING the warning count to the Apps Script
+        // Detailed responses formatted for a single spreadsheet cell
+        Responses: userAnswers.map((ans, index) => {
+            const status = (ans !== null && questions[index].answers[ans].correct) ? 'Correct' : 
+                           (ans !== null ? 'Incorrect' : 'Unanswered');
+            const selectedText = ans !== null ? questions[index].answers[ans].text : 'N/A';
+            return `Q${index + 1}: Selected='${selectedText}', Status='${status}'`;
+        }).join(' | ')
+      };
+
+      // 3. Submit to Google Apps Script
+      try {
+        const formData = new FormData();
+        // Convert the submissionData object to FormData fields
+        for (const key in submissionData) {
+            formData.append(key, submissionData[key]);
+        }
+        
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Essential for successful Google Apps Script submission
+            body: formData,
+        });
+
+        submittedEmails.add(email); // Mark as submitted
+        console.log("Quiz result submission initiated (check Google Sheet for status).");
+
+      } catch (e) {
+        console.error("Error submitting quiz results to Apps Script: ", e);
+        // Show a temporary error to the user if the network request failed
+        timeTakenText.textContent = `Time taken: ${formatTime(timeTakenSec)} (⚠️ Submission Failed)`;
+        alert("Failed to submit result to the server. Please check your network and try again, or take a screenshot of your score.");
+      }
+    }
+    
+    // ----------------------
+    // 7. SECURITY & EVENT LISTENERS
+    // ----------------------
+    
+    // UPDATED: handleVisibilityChange to track 3 strikes
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            if (quizScreen.classList.contains('hidden')) return; // Only trigger if quiz is active
+            
+            warningCount++; // Increment the count on leaving the tab
+            
+            if (warningCount >= MAX_WARNINGS) {
+                // 3rd time (or more) infraction: Auto-submit and block
+                clearInterval(timerInterval);
+                submitQuiz(false, warningCount); 
+                alert(`SECURITY VIOLATION: ${warningCount} tab switches detected. Quiz submitted automatically. This email is blocked from re-attempts by server-side rule.`);
+            } else {
+                // Show warning and pause on 1st or 2nd infraction
+                if (!isWarningDisplayed) {
+                    warningOverlay.classList.remove('hidden');
+                    isWarningDisplayed = true;
+                    clearInterval(timerInterval);
+                    warningText.textContent = 
+                        `Warning ${warningCount} of ${MAX_WARNINGS}. Leaving the quiz tab is not allowed. Please return immediately.`;
+                }
+            }
+        } else {
+            // Tab is back in focus
+            if (isWarningDisplayed) {
+                warningOverlay.classList.add('hidden');
+                isWarningDisplayed = false;
+                if (warningCount < MAX_WARNINGS) {
+                    startTimer(); // Resume timer only if not yet auto-submitted
+                    alert(`Quiz resumed. Warning count: ${warningCount}. Exceeding ${MAX_WARNINGS} switches will result in immediate submission.`);
+                }
+            }
+        }
+    }
+
+    function disableClipboard(event) {
+        event.preventDefault();
+        alert("Copy/Paste is disabled for this quiz.");
+    }
+    
+    function setupSecurityChecks() {
+        // Tab/Window Switching Check
+        window.addEventListener('blur', handleVisibilityChange);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // Copy/Paste Disable
+        document.addEventListener('copy', disableClipboard);
+        document.addEventListener('cut', disableClipboard);
+    }
+    
+    // Initialize event listeners
+    [nameInput, emailInput, whatsappInput, qualificationsInput, honorCodeCheckbox].forEach(el => {
+      el.addEventListener('input', validateInputs);
+      el.addEventListener('change', validateInputs); // For checkbox
+    });
+    
+    prevBtn.addEventListener('click', () => {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        loadQuestion();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+      }
+    });
+
+    submitBtn.addEventListener('click', () => {
+        // Final check/confirmation before submitting
+        const unansweredCount = userAnswers.filter(a => a === null).length;
+        if (unansweredCount > 0) {
+            if (!confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to submit?`)) {
+                return;
+            }
+        }
+        submitQuiz(false, warningCount); // Pass final warning count on manual submit
+    });
+    
+    // Re-validate on load
+    validateInputs();
+
+    // Primary START button handler
+    startBtn.addEventListener('click', startQuiz);
+    
+    // 'Try Again' button logic
+    document.getElementById('restart-btn').addEventListener('click', () => {
+        window.location.reload(); 
+    });
+
+  </script>
+</body>
+</html>
+```
